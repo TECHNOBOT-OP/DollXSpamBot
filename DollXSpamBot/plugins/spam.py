@@ -36,33 +36,38 @@ from telethon.tl.custom import button
 @BOT9.on(events.NewMessage(incoming=True, pattern=r"\%sspam(?: |$)(.*)" % hl))
 async def spam(e):
     usage = "𝗠𝗼𝗱𝘂𝗹𝗲 𝗡𝗮𝗺𝗲 = 𝗦𝗽𝗮𝗺\n\nCommand:\n\n.spam <count> <message to spam>\n\n.spam <count> <reply to a message>\n\nCount must be a integer."
-    error = "Spam Module can only be used till 100 count. For bigger spams use BigSpam."
     if e.sender_id in SUDO_USERS:
         if e.text[0].isalpha() and e.text[0] in ("/", "#", "@", "!"):
-            return await e.reply(usage) 
+            return await e.reply(usage)
         Deadly = ("".join(e.text.split(maxsplit=1)[1:])).split(" ", 1)
         smex = await e.get_reply_message()
         if len(Deadly) == 2:
             message = str(Deadly[1])
             counter = int(Deadly[0])
-            if counter > 100:
-                return await e.reply(error)
-            await asyncio.wait([e.respond(message) for i in range(counter)])
-        elif e.reply_to_msg_id and smex.media:
-            counter = int(Deadly[0])
-            if counter > 100:
-                return await e.reply(error)
             for _ in range(counter):
-                smex = await e.client.send_file(e.chat_id, smex, caption=smex.text)
-                await gifspam(e, smex)
+                 async with e.client.action(e.chat_id, "typing"):
+                     if e.reply_to_msg_id:
+                          await smex.reply(message)
+                     else:
+                          await e.client.send_message(e.chat_id, message)
+                 await asyncio.sleep(0.3)
+        elif e.reply_to_msg_id and smex.media:  
+            counter = int(Deadly[0])
+            for _ in range(counter):
+                async with e.client.action(e.chat_id, "document"):
+                    smex = await e.client.send_file(e.chat_id, smex, caption=smex.text)
+                    await gifspam(e, smex) 
+                await asyncio.sleep(0.3)  
         elif e.reply_to_msg_id and smex.text:
             message = smex.text
             counter = int(Deadly[0])
-            if counter > 100:
-                return await e.reply(error)
-            await asyncio.wait([e.respond(message) for i in range(counter)])
+            for _ in range(counter):
+                async with e.client.action(e.chat_id, "typing"):
+                    await e.client.send_message(e.chat_id, message)
+                    await asyncio.sleep(0.3)
         else:
             await e.reply(usage)
+
 
 
 @BOT0.on(events.NewMessage(incoming=True, pattern=r"\%sbigspam(?: |$)(.*)" % hl))
